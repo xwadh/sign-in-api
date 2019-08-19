@@ -4,9 +4,8 @@ const app = new Koa()
 const json = require('koa-json')
 const onerror = require('koa-onerror')
 const bodyparser = require('koa-bodyparser')
-// const logger = require('koa-logger')
-const logger = require('./utils/log-config')
-const log4js = require('log4js')
+const jwt = require('koa-jwt');
+const logger = require('koa-logger')
 const index = require('./routes/index')
 const users = require('./routes/users')
 
@@ -18,8 +17,8 @@ app.use(bodyparser({
   enableTypes:['json', 'form', 'text']
 }))
 app.use(json())
-// app.use(logger())//自带koa-logger
-app.use(log4js.connectLogger(logger, {level: 'auto', format:':method :url'}));
+app.use(logger())//自带koa-logger
+// app.use(log4js.connectLogger(logger, {level: 'auto', format:':method :url'}));
 app.use(require('koa-static')(__dirname + '/public'))
 
 // app.use(views(__dirname + '/views', {
