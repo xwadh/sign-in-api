@@ -1,11 +1,12 @@
 const router = require('koa-router')()
 let bcrypt = require('bcrypt');
-let cdypto = require('crypto');
+const jwt = require('jsonwebtoken');
+// let cdypto = require('crypto');
 const db = require('../tool/db');
 const logger = require('../utils/log-config')
 let SALT_WORK_FACTOR = 10; //设置加密密码计算强度
 
-router.prefix('/users')
+router.prefix('/user')
 
 //简单的用户名，密码注册
 router.get('/register', async (ctx, next)=>{
@@ -26,8 +27,9 @@ router.get('/register', async (ctx, next)=>{
   // ctx.body = 'this is a users response!'
 })
 
-router.get('/login', async (ctx, next)=>{
+router.post('/login', async (ctx, next)=>{
   let {username,password} = ctx.request.body;
+  console.log(username,password)
   let user = await db.User.findOne({
     where:{
       username:username
@@ -37,8 +39,15 @@ router.get('/login', async (ctx, next)=>{
     //解密密码
     let bool = await bcrypt.compare(password,user.password);
     if(bool){
-      let md5 = cdypto.createHash('md5');
-      let token = md5.update(username,password).digest("hex");
+      // let md5 = cdypto.createHash('md5');
+      const token = jwt.sign({
+          name: user.username,
+          _id: user.id,
+        },
+       'token',
+       { expiresIn: '2h' }
+      );
+      ctx.append('token',token);
       ctx.body = {code:200,data:{token:token,user:user.username},msg:'登录成功'};
     }else{
       ctx.body = {code:500,data:{},msg:'密码错误'};

@@ -4,10 +4,10 @@ const app = new Koa()
 const json = require('koa-json')
 const onerror = require('koa-onerror')
 const bodyparser = require('koa-bodyparser')
-const jwt = require('koa-jwt');
+const koajwt = require('koa-jwt');
 const logger = require('koa-logger')
 const index = require('./routes/index')
-const users = require('./routes/users')
+const user = require('./routes/user')
 
 // error handler
 onerror(app)
@@ -20,6 +20,27 @@ app.use(json())
 app.use(logger())//自带koa-logger
 // app.use(log4js.connectLogger(logger, {level: 'auto', format:':method :url'}));
 app.use(require('koa-static')(__dirname + '/public'))
+
+// 错误处理
+app.use((ctx, next) => {
+  return next().catch((err) => {
+      if(err.status === 401){
+          ctx.status = 401;
+          ctx.body = 'Protected resource, use Authorization header to get access\n';
+      }else{
+          throw err;
+      }
+  })
+})
+
+app.use(koajwt({
+  secret: 'token'
+}).unless({
+  path: [
+      /\/user\/login/,
+      '/user/register'
+  ]
+}));
 
 // app.use(views(__dirname + '/views', {
 //   extension: 'pug'
@@ -35,7 +56,7 @@ app.use(async (ctx, next) => {
 
 // routes
 app.use(index.routes(), index.allowedMethods())
-app.use(users.routes(), users.allowedMethods())
+app.use(user.routes(), user.allowedMethods())
 
 // error-handling
 app.on('error', (err, ctx) => {
