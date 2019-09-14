@@ -1,7 +1,7 @@
+//用户基本操作接口
 const router = require('koa-router')()
 let bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-// let cdypto = require('crypto');
+const tokenJs = require('../utils/token')
 const db = require('../tool/db');
 const logger = require('../utils/log-config')
 let SALT_WORK_FACTOR = 10; //设置加密密码计算强度
@@ -39,14 +39,7 @@ router.post('/login', async (ctx, next)=>{
     //解密密码
     let bool = await bcrypt.compare(password,user.password);
     if(bool){
-      // let md5 = cdypto.createHash('md5');
-      const token = jwt.sign({
-          name: user.username,
-          _id: user.id,
-        },
-       'token',
-       { expiresIn: '2h' }
-      );
+      const token = tokenJs.setJWTPayload(...user.username,user.id);
       ctx.append('token',token);
       ctx.body = {code:200,data:{token:token,user:user.username},msg:'登录成功'};
     }else{
@@ -57,5 +50,23 @@ router.post('/login', async (ctx, next)=>{
     ctx.body = {code:500,data:{},msg:'没有该用户,请重新输入'};
   }
 })
+
+//使用手机号码快捷登录，需要接入第三方短信服务，个人使用暂且不提供该项服务
+
+//验证登录成功接口
+router.post('/phoneLogin',async (ctx, next)=>{
+  console.log(ctx.headers.authorization)
+  const token = tokenJs.getJWTPayload(ctx.headers.authorization);
+  if(!!token){
+    ctx.body = {
+      code:200,
+      msg:'登陆成功',
+      data:{
+        info:'登陆成功'
+      }
+    };
+  }
+});
+
 
 module.exports = router

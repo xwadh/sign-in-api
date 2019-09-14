@@ -21,6 +21,16 @@ app.use(logger())//自带koa-logger
 // app.use(log4js.connectLogger(logger, {level: 'auto', format:':method :url'}));
 app.use(require('koa-static')(__dirname + '/public'))
 
+//token放到 authorization 这个header里， 对应的值以Bearer开头然后空一格
+app.use(koajwt({
+  secret: 'token'
+}).unless({
+  path: [
+      /\/user\/login/,
+      '/user/register'
+  ]
+}));
+
 // 错误处理
 app.use((ctx, next) => {
   return next().catch((err) => {
@@ -32,15 +42,6 @@ app.use((ctx, next) => {
       }
   })
 })
-
-app.use(koajwt({
-  secret: 'token'
-}).unless({
-  path: [
-      /\/user\/login/,
-      '/user/register'
-  ]
-}));
 
 // app.use(views(__dirname + '/views', {
 //   extension: 'pug'

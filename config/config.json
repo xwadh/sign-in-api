@@ -1,0 +1,4 @@
+{
+    "token":"sign-in-token",
+    "expiresIn": "2h"
+}
